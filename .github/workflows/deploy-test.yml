@@ -1,0 +1,33 @@
+name: Bygg og deploy 11ty til publ-branch
+
+on:
+  push:
+    branches:
+      - hoved
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sjekk ut repo
+        uses: actions/checkout@v4
+
+      - name: Installer avhengigheter og bygg 11ty
+        run: |
+          npm install
+          npm run build
+
+      - name: Deploy til publ-branch
+        run: |
+          mkdir publ
+          cp -r _site/* publ/  # Bytt '_site' hvis output-mappa heter noe annet
+
+          cd publ
+          git init
+          git checkout --orphan publ
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Deploy fra hoved via GitHub Actions"
+          git push --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" publ
